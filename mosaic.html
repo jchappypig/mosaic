@@ -3,9 +3,18 @@
   <head>
     <script type="text/javascript" src="js/mosaic.js"></script>
     <script type="text/javascript" src="js/client.js"></script>
+    <link rel="stylesheet" href="stylesheets/mosaic.css">
     <title>Mosaic</title>
   </head>
   <body>
-    <!-- Edit me. -->
+    <h1>Hello Canva</h1>
+
+    <div>
+      <h4> Please select a file to mosaic </h4>
+      <input type="file" id="inputOriginal" onchange="displayImage(this);"/>
+    </div>
+    <div class="row">
+      <image id="original" src="#"></image>
+    </div>
   </body>
 </html>
