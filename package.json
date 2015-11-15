@@ -1,0 +1,12 @@
+{
+  "author": "Canva",
+  "dependencies": {
+    "gm": "^1.18.1"
+  },
+  "name": "mosaic",
+  "version": "0.0.0",
+  "scripts": {
+    "preinstall": "./brew_install.sh graphicsmagick && ./brew_install.sh imagemagick",
+    "start": "node server.js"
+  }
+}
