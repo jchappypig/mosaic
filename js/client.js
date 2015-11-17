@@ -4,7 +4,7 @@ function displayImage(input) {
     var reader = new FileReader();
 
     reader.onload = function (e) {
-      imageDataUrl = e.target.result;
+      var imageDataUrl = e.target.result;
       var blockSize = 4;
       var image = new Image();
       image.src = imageDataUrl;

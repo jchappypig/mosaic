@@ -21,16 +21,29 @@ var cache = {};
 http.createServer(function (req, res) { 
   var pathname = url.parse(req.url).pathname;
   var m;
+
+  function loadFiles(contentType) {
+    var filename = dir + pathname;
+    var stats = fs.existsSync(filename) && fs.statSync(filename);
+    if (stats && stats.isFile()) {
+      res.writeHead(200, {'Content-Type': contentType});
+      fs.createReadStream(filename).pipe(res);
+      return true;
+    }
+
+    return false;
+  }
+
   if (pathname == '/') {
     res.writeHead(200, {'Content-Type': 'text/html'});
     fs.createReadStream(dir + '/mosaic.html').pipe(res);
     return;
   } else if (m = pathname.match(/^\/js\//)) {
-    var filename = dir + pathname;
-    var stats = fs.existsSync(filename) && fs.statSync(filename);
-    if (stats && stats.isFile()) {
-      res.writeHead(200, {'Content-Type' : 'application/javascript'});
-      fs.createReadStream(filename).pipe(res);
+    if(loadFiles('application/javascript')) {
+      return;
+    }
+  } else if (m = pathname.match(/^\/stylesheets\//)) {
+    if(loadFiles('text/css')) {
       return;
     }
   } else if (m = pathname.match(/^\/color\/([0-9a-fA-F]{6})/)) {
