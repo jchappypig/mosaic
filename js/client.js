@@ -11,3 +11,10 @@ function displayImage(input) {
     reader.readAsDataURL(input.files[0]);
   }
 }
+
+window.onload = function() {
+  document.getElementById('original').style.display = 'none';
+  document.getElementById('inputOriginal').onchange = function() {
+    displayImage(this);
+  }
+}
