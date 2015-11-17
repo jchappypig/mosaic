@@ -1,3 +1,8 @@
 .row {
   padding-top: 1rem;
 }
+
+.col-6 {
+  width: 40%;
+  float: left;
+}
