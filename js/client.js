@@ -15,10 +15,18 @@ function displayImage(input) {
         image.src = original.src;
 
         var canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
+        canvas.width = imageWidth;
+        canvas.height = imageHeight;
         canvas.id = 'outputImage';
-        canvas.getContext('2d').drawImage(image, 0, 0);
+
+        numberOfCols = Math.floor(imageWidth/TILE_WIDTH);
+        numberOfRows = Math.floor(imageHeight/TILE_HEIGHT);
+
+        for(var row=0; row<numberOfRows; row++) {
+          for(var col=0; col<numberOfCols; col++) {
+            canvas.getContext('2d').drawImage(image, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT);
+          }
+        }
 
         document.getElementsByClassName('output')[0].replaceChild(canvas, document.getElementById('outputImage'));
       }
