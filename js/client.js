@@ -4,42 +4,48 @@ function displayImage(input) {
     var reader = new FileReader();
 
     reader.onload = function (e) {
-      var original = document.getElementById('original');
-      original.src = e.target.result;
-      original.style.display = "inline-block";
-      original.onload = function() {
+      imageDataUrl = e.target.result;
+      var image = new Image();
+      image.src = imageDataUrl;
+      image.onload = function() {
         imageWidth = this.width;
         imageHeight = this.height;
 
-        var image = new Image();
-        image.src = original.src;
+        var inputCanvas = document.createElement('canvas');
+        inputCanvas.id = 'inputImage';
+        inputCanvas.width = imageWidth;
+        inputCanvas.height = imageHeight;
+        var inputCanvasContext = inputCanvas.getContext('2d');
+        inputCanvasContext.drawImage(image, 0, 0);
+        document.getElementsByClassName('input')[0].replaceChild(inputCanvas, document.getElementById('inputImage'));
 
-        var canvas = document.createElement('canvas');
-        canvas.width = imageWidth;
-        canvas.height = imageHeight;
-        canvas.id = 'outputImage';
+
+        var outputCanvas = document.createElement('canvas');
+        outputCanvas.id = 'outputImage';
+        outputCanvas.width = imageWidth;
+        outputCanvas.height = imageHeight;
+        var outputCanvasContext = outputCanvas.getContext('2d');
 
         numberOfCols = Math.floor(imageWidth/TILE_WIDTH);
         numberOfRows = Math.floor(imageHeight/TILE_HEIGHT);
 
         for(var row=0; row<numberOfRows; row++) {
           for(var col=0; col<numberOfCols; col++) {
-            canvas.getContext('2d').drawImage(image, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT);
+            outputCanvasContext.drawImage(image, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT);
           }
         }
 
-        document.getElementsByClassName('output')[0].replaceChild(canvas, document.getElementById('outputImage'));
+
+        document.getElementsByClassName('output')[0].replaceChild(outputCanvas, document.getElementById('outputImage'));
+
       }
     };
-
-
 
     reader.readAsDataURL(input.files[0]);
   }
 }
 
 window.onload = function() {
-  document.getElementById('original').style.display = 'none';
   document.getElementById('imageInput').onchange = function () {
     displayImage(this);
   }
