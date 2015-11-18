@@ -26,7 +26,7 @@ function getTileImageData(startX, startY, tileWidth, tileHeight, canvasWidth, im
       var position = x * 4 + y * canvasWidth * 4;
 
       tileImageData.push(
-        imageData[position + 0],
+        imageData[position],
         imageData[position + 1],
         imageData[position + 2],
         imageData[position + 3]
