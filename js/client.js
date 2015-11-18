@@ -5,7 +5,7 @@ function displayImage(input) {
 
     reader.onload = function (e) {
       var imageDataUrl = e.target.result;
-      var blockSize = 4;
+      var blockSize = 8;
       var image = new Image();
       image.src = imageDataUrl;
       image.onload = function() {
@@ -100,7 +100,7 @@ function loadHexImage(hex) {
 
     image.onload = function() {
       return resolve(image);
-    }
+    };
 
     image.onerror = function() {
       return reject(Error('Failed to load image: ' + image.src));
