@@ -31,12 +31,15 @@ function displayImage(input) {
         var numberOfRows = Math.floor(imageHeight / TILE_HEIGHT);
 
         var drawTile = function(row, col, tileImage) {
-          return function() {
-            outputCanvasContext.drawImage(tileImage, col*TILE_WIDTH, row*TILE_HEIGHT);
-          };
+          outputCanvasContext.drawImage(tileImage, col*TILE_WIDTH, row*TILE_HEIGHT);
         };
 
+        document.getElementsByClassName('output')[0].replaceChild(outputCanvas, document.getElementById('outputImage'));
+
+        var hexMatrix = [];
+
         for(var row=0; row<numberOfRows; row++) {
+          hexMatrix[row] = [];
           for(var col=0; col<numberOfCols; col++) {
             var tileImageData = inputCanvasContext.getImageData(col*TILE_WIDTH, row*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT).data;
             var i = -4;
@@ -64,19 +67,45 @@ function displayImage(input) {
             }
 
             var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-            var tileImage = new Image();
-            tileImage.src = '/color/' + hex;
-
-            tileImage.onload = drawTile(row, col, tileImage);
+            hexMatrix[row].push(hex);
           }
         }
 
-        document.getElementsByClassName('output')[0].replaceChild(outputCanvas, document.getElementById('outputImage'));
+        hexMatrix.reduce(function(sequence, hexes, row) {
+          return sequence.then(function() {
+            return loadHexImagesOnRow(hexes);
+          }).then(function(images) {
+            images.map(function(image, col) {
+              console.log("image is loaded: " + image.src);
+              drawTile(row, col, image);
+            });
+            console.log(row);
+          });
+        }, Promise.resolve());
       }
     };
 
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+function loadHexImagesOnRow(hexes) {
+  return Promise.all(hexes.map(loadHexImage));
+}
+
+function loadHexImage(hex) {
+  return new Promise(function(resolve, reject) {
+    var image = new Image();
+    image.src = '/color/' + hex;
+
+    image.onload = function() {
+      return resolve(image);
+    }
+
+    image.onerror = function() {
+      return reject(Error('Failed to load image: ' + image.src));
+    }
+  });
 }
 
 window.onload = function() {
