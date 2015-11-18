@@ -2,11 +2,11 @@ function mosaicImage(input) {
   if (input.files && input.files[0]) {
     var reader = new FileReader();
 
-    reader.onload = function (event) {
+    reader.onload = function (e) {
       var image = new Image();
-      image.src = event.target.result;
+      image.src = e.target.result;
 
-      image.onload = function() {
+      image.onload = function () {
         var inputCanvas = renderOriginalImage(image);
         renderMosaicImage(inputCanvas);
       }
@@ -21,15 +21,15 @@ function loadHexImagesOnOneRow(hexes) {
 }
 
 function loadHexImage(hex) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     var image = new Image();
     image.src = '/color/' + hex;
 
-    image.onload = function() {
+    image.onload = function () {
       return resolve(image);
     };
 
-    image.onerror = function() {
+    image.onerror = function () {
       return reject(Error('Failed to load image: ' + image.src));
     }
   });
@@ -45,53 +45,6 @@ function createCanvas(id, width, height) {
   return canvas;
 }
 
-function averageRbg(imageData, blockSize) {
-  var i = -4;
-  var rgb = {r: 0, g: 0, b: 0};
-  var count = 0;
-
-  while ((i += blockSize * 4) < imageData.length) {
-    ++count;
-    rgb.r += imageData[i];
-    rgb.g += imageData[i + 1];
-    rgb.b += imageData[i + 2];
-  }
-
-  rgb.r = Math.floor(rgb.r / count);
-  rgb.g = Math.floor(rgb.g / count);
-  rgb.b = Math.floor(rgb.b / count);
-
-  return rgb;
-}
-
-function retrieveHexMatrix(canvas) {
-  var context = canvas.getContext('2d');
-  var pixelInterval = 8;
-  var hexMatrix = [];
-
-  var numberOfRows = Math.floor(canvas.height / TILE_HEIGHT);
-  var numberOfCols = Math.floor(canvas.width / TILE_WIDTH);
-
-  for (var row = 0; row < numberOfRows; row++) {
-    hexMatrix[row] = [];
-
-    for (var col = 0; col < numberOfCols; col++) {
-      var tileImageData = context.getImageData(col * TILE_WIDTH, row * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT).data;
-      var rgb = averageRbg(tileImageData, pixelInterval);
-      var rgb = rgb;
-
-      var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-      hexMatrix[row].push(hex);
-    }
-  }
-
-  return hexMatrix;
-}
-
-function rgbToHex(r, g, b) {
-  return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
 function renderOriginalImage(image) {
   var inputCanvas = createCanvas("inputCanvas", image.width, image.height);
   var inputCanvasContext = inputCanvas.getContext('2d');
@@ -102,19 +55,31 @@ function renderOriginalImage(image) {
   return inputCanvas;
 }
 
+function retrieveImageData(canvas) {
+  return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+}
+
 function renderMosaicImageAsync(inputCanvas, outputCanvas) {
   var outputCanvasContext = outputCanvas.getContext('2d');
-  var hexMatrix = retrieveHexMatrix(inputCanvas);
+  var imageData = retrieveImageData(inputCanvas);
 
-  hexMatrix.reduce(function (sequence, hexes, row) {
-    return sequence.then(function () {
-      return loadHexImagesOnOneRow(hexes);
-    }).then(function (images) {
-      images.map(function (image, col) {
-        drawTile(outputCanvasContext, row, col, image);
+  var worker = new Worker('js/hexMatrixCalculation.js');
+
+  worker.onmessage = function(e) {
+    var hexMatrix = e.data;
+
+    hexMatrix.reduce(function (sequence, hexes, row) {
+      return sequence.then(function () {
+        return loadHexImagesOnOneRow(hexes);
+      }).then(function (images) {
+        images.map(function (image, col) {
+          drawTile(outputCanvasContext, row, col, image);
+        });
       });
-    });
-  }, Promise.resolve());
+    }, Promise.resolve());
+  };
+
+  worker.postMessage({width: inputCanvas.width, height: inputCanvas.height, imageData: imageData, tileWidth: TILE_WIDTH, tileHeight: TILE_HEIGHT});
 }
 
 function renderMosaicImage(inputCanvas) {
@@ -128,7 +93,7 @@ var drawTile = function (context, row, col, tileImage) {
   context.drawImage(tileImage, col * TILE_WIDTH, row * TILE_HEIGHT);
 };
 
-window.onload = function() {
+window.onload = function () {
   document.getElementById('imageInput').onchange = function () {
     mosaicImage(this);
   }
