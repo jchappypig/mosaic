@@ -63,7 +63,7 @@ function renderMosaicImageAsync(inputCanvas, outputCanvas) {
   var outputCanvasContext = outputCanvas.getContext('2d');
   var imageData = retrieveImageData(inputCanvas);
 
-  var worker = new Worker('js/calculator.js');
+  var worker = new Worker('js/worker.js');
 
   worker.onmessage = function(e) {
     var hexMatrix = e.data;
