@@ -48,6 +48,7 @@ var calculator = function () {
       return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     },
 
+    // retrieve average hex value of each tile and puts it into a matrix
     retrieveHexMatrix: function (tileWidth, tileHeight, imageWidth, imageHeight, imageData) {
       var pixelInterval = 4;
       var hexMatrix = [];
@@ -74,11 +75,11 @@ var calculator = function () {
 
 self.onmessage = function (e) {
   var receivedData = e.data;
-  var width = receivedData.width;
-  var height = receivedData.height;
+  var imageWidth = receivedData.width;
+  var imageHeight = receivedData.height;
   var imageData = receivedData.imageData;
   var tileWidth = receivedData.tileWidth;
   var tileHeight = receivedData.tileHeight;
 
-  self.postMessage(calculator().retrieveHexMatrix(tileWidth, tileHeight, width, height, imageData));
+  self.postMessage(calculator().retrieveHexMatrix(tileWidth, tileHeight, imageWidth, imageHeight, imageData));
 };
