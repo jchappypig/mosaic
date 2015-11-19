@@ -1,3 +1,29 @@
+************************************************************************************************************************
+
+Hi CodeReviewers,
+
+Thank you for spending time on reading my code. :)
+
+Please select a file and see how it renders the mosaic version.
+In this tasks I have done the following:
+
+1. render mosaic version of a file
+2. render row by row from top down
+3. make use of promise and worker to do async and parallelism to improve performance
+4. I have attached a sample file (frozen_Input.png), which is 3.9 MB, 1924 × 1079.
+   It took about 55 sec the first time, 27 sec the second time to generate mosaic.
+   I have attached the output file as well (frozen_Output.png)
+
+I believe there are still a lot can be done and to improve.
+Any feedback is welcome! jchappypig@hotmail.com
+
+Cheers,
+Huanhuan Huang
+
+***********************************************************************************************************************
+
+
+
 Photo mosaic
 ------------
 
