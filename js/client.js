@@ -51,13 +51,14 @@ function renderer() {
       document.getElementsByClassName('output')[0].replaceChild(canvas, document.getElementById('outputCanvas'));
     },
 
+    // make use of promise and worker to draw mosaic image
     drawMosaicImageAsync: function (canvas, imageData) {
       var worker = new Worker('js/worker.js');
 
       worker.onmessage = function (e) {
         var hexMatrix = e.data;
 
-        // load images row by row
+        // load hex images row by row
         hexMatrix.reduce(function (sequence, hexes, row) {
           return sequence.then(function () {
             return imageLoader().loadHexImagesOnOneRow(hexes);
