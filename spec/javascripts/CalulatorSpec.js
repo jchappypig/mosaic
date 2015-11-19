@@ -1,4 +1,4 @@
-describe('hexMatrixCalculator', function () {
+describe('Calculator', function () {
 
   // Note: every four number compose a pixel.
   var imageData = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4,
@@ -10,17 +10,19 @@ describe('hexMatrixCalculator', function () {
     5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8,
     5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8];
 
+
+  var mosaicCalculator = calculator();
+
   describe('averageRbg', function () {
     it('should calculate average rgb color of an interval to improve efficiency', function () {
-      expect(averageRbg(imageData, 1)).toEqual({r: 4, g: 4, b: 4});
-      expect(averageRbg(imageData, 2)).toEqual({r: 5, g: 5, b: 5});
+      expect(mosaicCalculator.averageRbg(imageData)).toEqual({r: 6, g: 6, b: 6});
     })
   });
 
   describe('rgbToHex', function () {
     it('should convert rgb to hex value', function () {
-      expect(rgbToHex(0, 0, 0)).toEqual('000000');
-      expect(rgbToHex(255, 255, 255)).toEqual('ffffff');
+      expect(mosaicCalculator.rgbToHex(0, 0, 0)).toEqual('000000');
+      expect(mosaicCalculator.rgbToHex(255, 255, 255)).toEqual('ffffff');
     });
   });
 
@@ -35,7 +37,7 @@ describe('hexMatrixCalculator', function () {
 
       var expectedTileImageData = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
 
-      expect(getTileImageData(startX, startY, tileWidth, tileHeight, canvasWidth, imageData)).toEqual(expectedTileImageData);
+      expect(mosaicCalculator.getTileImageData(startX, startY, tileWidth, tileHeight, canvasWidth, imageData)).toEqual(expectedTileImageData);
     })
   });
 
@@ -49,7 +51,7 @@ describe('hexMatrixCalculator', function () {
       var expectedHexMatrix = [ ['010101', '020202', '030303', '040404'],
                                 ['050505', '060606', '070707', '080808']];
 
-      expect(retrieveHexMatrix(tileWidth, tileHeight, canvasWidth, canvasHeight, imageData)).toEqual(expectedHexMatrix);
+      expect(mosaicCalculator.retrieveHexMatrix(tileWidth, tileHeight, canvasWidth, canvasHeight, imageData)).toEqual(expectedHexMatrix);
     })
   });
 });
