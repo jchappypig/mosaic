@@ -84,7 +84,7 @@ function renderer() {
 
 function imageLoader() {
   return {
-    //Promise that is resolved only when all the images in one load has been loaded
+    //Promise that is resolved only when all the images in one row has been loaded
     loadHexImagesOnOneRow: function (hexes) {
       return Promise.all(hexes.map(this.loadHexImage));
     },
