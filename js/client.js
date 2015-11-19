@@ -1,4 +1,4 @@
-function mosaicImage(input) {
+function processImage(input) {
   if (input.files && input.files[0]) {
     var reader = new FileReader();
 
@@ -7,8 +7,8 @@ function mosaicImage(input) {
       image.src = e.target.result;
 
       image.onload = function () {
-        var inputCanvas = renderOriginalImage(image);
-        renderMosaicImage(inputCanvas);
+        var canvas = renderer().drawOriginalImage(image);
+        renderer().drawMosaicImage(canvas);
       }
     };
 
@@ -16,85 +16,98 @@ function mosaicImage(input) {
   }
 }
 
-function loadHexImagesOnOneRow(hexes) {
-  return Promise.all(hexes.map(loadHexImage));
-}
+function renderer() {
+  return {
+    createCanvas: function (id, width, height) {
+      var canvas = document.createElement('canvas');
 
-function loadHexImage(hex) {
-  return new Promise(function (resolve, reject) {
-    var image = new Image();
-    image.src = '/color/' + hex;
+      canvas.id = id;
+      canvas.width = width;
+      canvas.height = height;
 
-    image.onload = function () {
-      return resolve(image);
-    };
+      return canvas;
+    },
 
-    image.onerror = function () {
-      return reject(Error('Failed to load image: ' + image.src));
-    }
-  });
-}
+    drawTile: function (canvas, tileImage, row, col) {
+      canvas.getContext('2d').drawImage(tileImage, col * TILE_WIDTH, row * TILE_HEIGHT);
+    },
 
-function createCanvas(id, width, height) {
-  var canvas = document.createElement('canvas');
+    drawOriginalImage: function (image) {
+      var canvas = this.createCanvas("inputCanvas", image.width, image.height);
+      var context = canvas.getContext('2d');
 
-  canvas.id = id;
-  canvas.width = width;
-  canvas.height = height;
+      context.drawImage(image, 0, 0);
 
-  return canvas;
-}
+      document.getElementsByClassName('input')[0].replaceChild(canvas, document.getElementById('inputCanvas'));
 
-function renderOriginalImage(image) {
-  var inputCanvas = createCanvas("inputCanvas", image.width, image.height);
-  var inputCanvasContext = inputCanvas.getContext('2d');
+      return canvas;
+    },
 
-  inputCanvasContext.drawImage(image, 0, 0);
-  document.getElementsByClassName('input')[0].replaceChild(inputCanvas, document.getElementById('inputCanvas'));
+    drawMosaicImage: function (imageCanvas) {
+      var canvas = this.createCanvas("outputCanvas", imageCanvas.width, imageCanvas.height);
 
-  return inputCanvas;
-}
+      this.drawMosaicImageAsync(canvas, renderer().getImageData(imageCanvas));
 
-function retrieveImageData(canvas) {
-  return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
-}
+      document.getElementsByClassName('output')[0].replaceChild(canvas, document.getElementById('outputCanvas'));
+    },
 
-function renderMosaicImageAsync(inputCanvas, outputCanvas) {
-  var outputCanvasContext = outputCanvas.getContext('2d');
-  var imageData = retrieveImageData(inputCanvas);
+    drawMosaicImageAsync: function (canvas, imageData) {
+      var worker = new Worker('js/worker.js');
 
-  var worker = new Worker('js/worker.js');
+      worker.onmessage = function (e) {
+        var hexMatrix = e.data;
 
-  worker.onmessage = function(e) {
-    var hexMatrix = e.data;
+        // load images row by row
+        hexMatrix.reduce(function (sequence, hexes, row) {
+          return sequence.then(function () {
+            return imageLoader().loadHexImagesOnOneRow(hexes);
+          }).then(function (images) {
+            images.map(function (image, col) {
+              renderer().drawTile(canvas, image, row, col);
+            });
+          });
+        }, Promise.resolve());
+      };
 
-    hexMatrix.reduce(function (sequence, hexes, row) {
-      return sequence.then(function () {
-        return loadHexImagesOnOneRow(hexes);
-      }).then(function (images) {
-        images.map(function (image, col) {
-          drawTile(outputCanvasContext, row, col, image);
-        });
+      // rely on worker to do the calculation and generate the hex matrix
+      worker.postMessage({
+        width: canvas.width, height: canvas.height, imageData: imageData, tileWidth: TILE_WIDTH, tileHeight: TILE_HEIGHT
       });
-    }, Promise.resolve());
-  };
+    },
 
-  worker.postMessage({width: inputCanvas.width, height: inputCanvas.height, imageData: imageData, tileWidth: TILE_WIDTH, tileHeight: TILE_HEIGHT});
+    getImageData: function (canvas) {
+      return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    }
+  }
 }
 
-function renderMosaicImage(inputCanvas) {
-  var outputCanvas = createCanvas("outputCanvas", inputCanvas.width, inputCanvas.height);
-  renderMosaicImageAsync(inputCanvas, outputCanvas);
+function imageLoader() {
+  return {
+    //Promise that is resolved only when all the images in one load has been loaded
+    loadHexImagesOnOneRow: function (hexes) {
+      return Promise.all(hexes.map(this.loadHexImage));
+    },
 
-  document.getElementsByClassName('output')[0].replaceChild(outputCanvas, document.getElementById('outputCanvas'));
+    //Promise that load hex image from server
+    loadHexImage: function (hex) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        image.src = '/color/' + hex;
+
+        image.onload = function () {
+          return resolve(image);
+        };
+
+        image.onerror = function () {
+          return reject(Error('Failed to load image: ' + image.src));
+        }
+      });
+    }
+  }
 }
-
-var drawTile = function (context, row, col, tileImage) {
-  context.drawImage(tileImage, col * TILE_WIDTH, row * TILE_HEIGHT);
-};
 
 window.onload = function () {
   document.getElementById('imageInput').onchange = function () {
-    mosaicImage(this);
+    processImage(this);
   }
 };
