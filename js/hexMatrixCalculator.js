@@ -1,9 +1,9 @@
-function averageRbg(imageData, blockSize) {
+function averageRbg(imageData, pixelInterval) {
   var i = -4;
   var rgb = {r: 0, g: 0, b: 0};
   var count = 0;
 
-  while ((i += blockSize * 4) < imageData.length) {
+  while ((i += pixelInterval * 4) < imageData.length) {
     ++count;
     rgb.r += imageData[i];
     rgb.g += imageData[i + 1];
@@ -41,18 +41,18 @@ function rgbToHex(r, g, b) {
   return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
-function retrieveHexMatrix(width, height, imageData, tileWidth, tileHeight) {
-  var pixelInterval = 8;
+function retrieveHexMatrix(tileWidth, tileHeight, canvasWidth, canvasHeight, imageData) {
+  var pixelInterval = 4;
   var hexMatrix = [];
 
-  var numberOfRows = Math.floor(height / tileHeight);
-  var numberOfCols = Math.floor(width / tileWidth);
+  var numberOfRows = Math.floor(canvasHeight / tileHeight);
+  var numberOfCols = Math.floor(canvasWidth / tileWidth);
 
   for (var row = 0; row < numberOfRows; row++) {
     hexMatrix[row] = [];
 
     for (var col = 0; col < numberOfCols; col++) {
-      var tileImageData = getTileImageData(col * tileWidth, row * tileHeight, tileWidth, tileHeight, width, imageData);
+      var tileImageData = getTileImageData(col * tileWidth, row * tileHeight, tileWidth, tileHeight, canvasWidth, imageData);
       var rgb = averageRbg(tileImageData, pixelInterval);
 
       hexMatrix[row].push(rgbToHex(rgb.r, rgb.g, rgb.b));
@@ -70,5 +70,5 @@ self.onmessage = function(e) {
   var tileWidth = receivedData.tileWidth;
   var tileHeight = receivedData.tileHeight;
 
-  self.postMessage(retrieveHexMatrix(width, height, imageData, tileWidth, tileHeight));
+  self.postMessage(retrieveHexMatrix(tileWidth, tileHeight, width, height, imageData));
 };
